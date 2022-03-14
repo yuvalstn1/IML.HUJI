@@ -52,7 +52,7 @@ class UnivariateGaussian:
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
         self.mu_ = X.sum()/X.size
-        self.var_ = (1/(X.size-1))*np.square(X-self.mu_)
+        self.var_ = (1/(X.size-1))*np.sum(np.square(X-self.mu_))
         self.fitted_ = True
         return self
 
@@ -98,8 +98,9 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
 
+        log_likelihood = -(1/(2*sigma))*np.sum(np.square(X-mu))
+        return log_likelihood
 
 class MultivariateGaussian:
     """
