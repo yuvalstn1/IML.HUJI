@@ -171,7 +171,7 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        pdf_arr = (1/np.sqrt(np.power(2*np.pi,X.size)*np.abs(self.cov_)))*np.exp((-0.5)*np.dot(X-self.mu_,np.invert(self.cov_)*(X-self.mu_)))
+        pdf_arr = (1/np.sqrt(np.power(2*np.pi,X.shape[1])*np.linalg.det(self.cov_)))*np.exp((-0.5)*np.dot(X-self.mu_,np.linalg.inv(self.cov_)*(X-self.mu_)))
         return pdf_arr
 
     @staticmethod
@@ -193,4 +193,7 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated over all input data and under given parameters of Gaussian
         """
-        raise NotImplementedError()
+        #TODO correct the log_likelihood
+        log_likelihood = np.sum(np.log(1/(np.power(np.sqrt(2*np.pi),X.shape[1])*np.linalg.det(cov))-0.5*(X-mu)*np.linalg.inv(cov)*(X-mu)))
+        return log_likelihood
+

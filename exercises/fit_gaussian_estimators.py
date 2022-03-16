@@ -49,8 +49,17 @@ def test_multivariate_gaussian():
     print(mult_gauss.cov_)
 
     # Question 5 - Likelihood evaluation
-    #raise NotImplementedError()
+    num_arr = np.linspace(-10,10,200)
 
+    mu_array = np.zeros((400000,4))
+    for i in range(200):
+        for j in range(200):
+            k = i*j
+            mu_array[200*i+j][0] = num_arr[i]
+            mu_array[200*i + j][2] = num_arr[j]
+    likelihood_func = np.vectorize(mult_gauss.log_likelihood)
+    sample_log_likelikhood = likelihood_func(mu_array,cov,mult_norm_samples)
+    print("hello")
     # Question 6 - Maximum likelihood
     #raise NotImplementedError()
 
