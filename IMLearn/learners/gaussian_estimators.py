@@ -145,7 +145,8 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
+        self.mu_ = np.mean(X,axis = 0)
+        self.cov_ = np.cov(X,rowvar= False,bias= False)
 
         self.fitted_ = True
         return self
@@ -170,7 +171,8 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+        pdf_arr = (1/np.sqrt(np.power(2*np.pi,X.size)*np.abs(self.cov_)))*np.exp((-0.5)*np.dot(X-self.mu_,np.invert(self.cov_)*(X-self.mu_)))
+        return pdf_arr
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
