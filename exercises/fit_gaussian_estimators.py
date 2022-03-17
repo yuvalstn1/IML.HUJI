@@ -51,17 +51,29 @@ def test_multivariate_gaussian():
     # Question 5 - Likelihood evaluation
     num_arr = np.linspace(-10,10,200)
 
-    mu_array = np.zeros((400000,4))
+    mu_array = np.zeros((40000,4))
     for i in range(200):
         for j in range(200):
             k = i*j
             mu_array[200*i+j][0] = num_arr[i]
             mu_array[200*i + j][2] = num_arr[j]
-    likelihood_func = np.vectorize(mult_gauss.log_likelihood)
-    sample_log_likelikhood = likelihood_func(mu_array,cov,mult_norm_samples)
-    print("hello")
+
+    x = np.unique(mu_array[:,0])
+    y = np.unique(mu_array[:,2])
+    samp_log_like = np.apply_along_axis(mult_gauss.log_likelihood,axis = 1,arr = mu_array,cov = cov,X =mult_norm_samples).reshape(200,200)
+    #sample_log_likelihood = np.array([mult_gauss.log_likelihood(mu,cov,mult_norm_samples) for mu in mu_array]).reshape(200,200)
+
+    max_indices = np.unravel_index(samp_log_like.argmax(), samp_log_like.shape)
+    max_likelihood_vals = (x[max_indices[0]], y[max_indices[1]])
+    print("f1=" + str(max_likelihood_vals[0]) + " f3=" + str(max_likelihood_vals[1]))
+
+    #ht_map = go.Figure(go.Heatmap(x = y,y =x,z =sample_log_likelihood),title = "Log-likelihood of Multivariate-Gaussian")
+    ht_map = go.Figure(go.Heatmap(x=y, y=x, z=samp_log_like))
+    ht_map.update_layout(title = "log-likelihood of multivariate Gaussian",xaxis_title  = "f3 value", yaxis_title = "f1 value")
+    ht_map.show()
     # Question 6 - Maximum likelihood
-    #raise NotImplementedError()
+
+
 
 def mat_mean():
     mat= np.array ([[10,7,8],[3,0,3],[1,0,1]])
