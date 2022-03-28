@@ -98,8 +98,8 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-
-        log_likelihood = -(1/(2*sigma))*np.sum(np.square(X-mu))
+        x_mu = X-mu
+        log_likelihood =-0.5*X.shape[0]*np.log(2*np.pi)-0.5*X.shape[0]*np.log(sigma) -(1/(2*sigma))*np.sum(np.square(x_mu))
         return log_likelihood
 
 class MultivariateGaussian:
@@ -171,8 +171,11 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        pdf_arr = (1/np.sqrt(np.power(2*np.pi,X.shape[1])*np.linalg.det(self.cov_)))*np.exp((-0.5)*np.dot(X-self.mu_,np.linalg.inv(self.cov_)*(X-self.mu_)))
-        return pdf_arr
+        constants_operand = (1/np.sqrt(np.power(2*np.pi,X.shape[1])*np.linalg.det(self.cov_)))
+        x_mu = X-self.mu_
+        exp_operand = np.exp((-0.5)*(x_mu @ np.linalg.inv(self.cov_) @ x_mu.T))
+        pdf_arr = constants_operand*exp_operand
+        return np.diagonal(pdf_arr)
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
@@ -198,9 +201,8 @@ class MultivariateGaussian:
         d = X.shape[1]
         x_mu = X-mu
         first_operand = -0.5*m*(d*np.log(2*np.pi)+np.log(np.linalg.det(cov)))
-        xtcov  = x_mu @ np.linalg.inv(cov)
-        #second_operand = -np.sum(0.5*np.dot(xtcov,(np.transpose(x_mu))))
-        second_operand = -0.5*np.sum(xtcov @ x_mu.T)
+
+        second_operand = -0.5*np.sum(x_mu @ np.linalg.inv(cov) * x_mu)
         log_likelihood = first_operand+second_operand
         return log_likelihood
 
