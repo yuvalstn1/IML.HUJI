@@ -24,7 +24,16 @@ def load_data(filename: str):
     DataFrame or a Tuple[DataFrame, Series]
     """
     csv_data = pd.read_csv(filename,index_col= 0)
-    return csv_data
+    csv_data = pd.get_dummies(csv_data,prefix='zipcode num ',columns=['zipcode'])
+    csv_data['date']= np.float_(csv_data['date'].str.replace('T000000',''))/10000
+
+    #get mean values of every column fill blank spaces with mean value of column
+    mean_values = {column: csv_data[column].mean() for column in csv_data.columns
+                   if column not in {'id','date','zipcode','yr_renovated'}}
+    csv_data.fillna(value = mean_values)
+    csv_data.fillna(0)
+
+    return csv_data,csv_data['price']
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -44,16 +53,25 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     output_path: str (default ".")
         Path to folder in which plots are saved
     """
-    raise NotImplementedError()
+    for column in X.columns:
+        print(X[column].cov(y))
+
+    col_corr_array = np.array([(column,(X[column].cov(y)/((X[column]).std()*y.std()))) for column in X.columns])
+    print(col_corr_array)
+    for column,corr in col_corr_array:
+        fig  = px.scatter(x = X[column],y =y,title = column)
+        pio.write_image(fig,file = output_path,format='png')
+
+
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    load_data('../datasets/house_prices.csv')
+    df,response = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    raise NotImplementedError()
+    feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder")
 
     # Question 3 - Split samples into training- and testing sets.
     raise NotImplementedError()
