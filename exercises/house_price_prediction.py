@@ -59,8 +59,9 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     col_corr_array = np.array([(column,(X[column].cov(y)/((X[column]).std()*y.std()))) for column in X.columns])
     print(col_corr_array)
     for column,corr in col_corr_array:
-        fig  = px.scatter(x = X[column],y =y,title = column)
-        pio.write_image(fig,file = output_path,format='png')
+        fig  = px.scatter(x = X[column],y =y,title = column+"-price pearson correlation: "+corr)
+
+        pio.write_image(fig,file = output_path+str(column)+"fig.png")
 
 
 
@@ -71,7 +72,7 @@ if __name__ == '__main__':
     df,response = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder")
+    feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
 
     # Question 3 - Split samples into training- and testing sets.
     raise NotImplementedError()
