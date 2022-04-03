@@ -72,8 +72,8 @@ class PolynomialFitting(BaseEstimator):
             Performance under MSE loss function
         """
         tran_X = self.__transform(X)
-        y_hat = self.reg.predict(tran_X)
-        return mse(y,y_hat)
+
+        return self.reg.loss(tran_X,y)
 
     def __transform(self, X: np.ndarray) -> np.ndarray:
         """
