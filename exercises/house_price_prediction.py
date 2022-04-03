@@ -72,7 +72,7 @@ if __name__ == '__main__':
     df,response = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    #feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
+    feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
 
     # Question 3 - Split samples into training- and testing sets.
     train_samples,train_response,test_samples,test_response = split_train_test(df,response,0.75)
@@ -85,5 +85,19 @@ if __name__ == '__main__':
     #   3) Test fitted model over test set
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    raise NotImplementedError()
+    frac_array =[]
+    mean_loss_arr = []
+    lin_reg = LinearRegression()
+    for i in range(10,100):
+        frac = float(1 / i)
+        frac_array.append(frac)
+        loss_p = []
+        for x in range(10):
+            train_x,train_y,test_x,test_y = split_train_test(df,response,frac)
+            lin_reg.fit(train_x,train_y)
+            loss = lin_reg.loss(test_x,test_y)
+            loss_p.append(loss)
+        mean_loss = np.mean(loss_p)
+        mean_loss_arr.append(mean_loss)
+
 
