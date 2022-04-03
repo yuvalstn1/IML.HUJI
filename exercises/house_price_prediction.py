@@ -25,7 +25,7 @@ def load_data(filename: str):
     """
     csv_data = pd.read_csv(filename)
     response = csv_data['price']
-    csv_data.drop(['price'],axis = 1,inplace= True)
+    csv_data.drop(['price','id'],axis = 1,inplace= True)
     csv_data = pd.get_dummies(csv_data,prefix='zipcode num ',columns=['zipcode'])
     csv_data['date']= np.float_(csv_data['date'].str.replace('T000000',''))/10000
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     df,response = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
+    #feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
 
     # Question 3 - Split samples into training- and testing sets.
     train_samples,train_response,test_samples,test_response = split_train_test(df,response,0.75)
@@ -87,17 +87,32 @@ if __name__ == '__main__':
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
     frac_array =[]
     mean_loss_arr = []
+    var_loss_arr = []
     lin_reg = LinearRegression()
     for i in range(10,100):
-        frac = float(1 / i)
+        frac = i
         frac_array.append(frac)
         loss_p = []
         for x in range(10):
-            train_x,train_y,test_x,test_y = split_train_test(df,response,frac)
+            train_x,train_y,test_x,test_y = split_train_test(train_samples,train_response,1/float(frac))
             lin_reg.fit(train_x,train_y)
             loss = lin_reg.loss(test_x,test_y)
             loss_p.append(loss)
         mean_loss = np.mean(loss_p)
+        var_loss = np.std(loss_p)
+        var_loss_arr.append(var_loss)
         mean_loss_arr.append(mean_loss)
+    var_loss_arr = np.array(var_loss_arr)
+    mean_loss_arr = np.array(mean_loss_arr)
+    mean_value = np.full(mean_loss_arr.shape,np.mean(mean_loss_arr))
+    fig = go.Figure(data= [go.Scatter(x = frac_array,y=mean_loss_arr,name = "mean_loss",mode="markers+lines"),
+                           go.Scatter(x = frac_array,y=mean_loss_arr + 2*var_loss_arr, mode="lines", fill='tonexty',line=dict(color="lightgrey"), showlegend=False),
+                            go.Scatter(x=frac_array, y=mean_loss_arr - 2*var_loss_arr, mode="lines", fill='tonexty',line=dict(color="lightgrey"), showlegend=False),
+                           go.Scatter(x = frac_array,y=mean_value,name = "estimator mean of mean loss",mode="lines",line=dict(color="green") )],
+                    layout = go.Layout(title_text="MSE as function of p% of training data",
+                         xaxis={"title": "p% of training data"},
+                         yaxis={"title": "mean_loss"})
+                    )
 
+    fig.show()
 

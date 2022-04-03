@@ -52,7 +52,8 @@ class LinearRegression(BaseEstimator):
         """
         if self.include_intercept_:
             #find the moore-penrose inverse of X
-            X = np.concatenate((np.ones(X.shape[0]).T,X),axis = 1)
+            added_intercept = np.ones(X.shape[0]).T.reshape(X.shape[0],1)
+            X = np.concatenate((added_intercept,X),axis = 1)
         x_sword = pinv(X)
         # u, sing_val_mat, v_t = np.linalg.svd(X)
         # sing_values = np.diagonal(sing_val_mat)
@@ -61,7 +62,7 @@ class LinearRegression(BaseEstimator):
         # inv_sing_val = div_func_arr(sing_values)
         # sing_cross = np.fill_diagonal(sing_val_mat, sing_values)
         # x_sword = v_t.T @ sing_cross @ u.T
-        self.coefs_ = x_sword @ y
+        self.coefs_ = (x_sword @ y)
 
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -78,6 +79,9 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
+        if self.include_intercept_:
+            added_intercept = np.ones(X.shape[0]).T.reshape(X.shape[0], 1)
+            X = np.concatenate((added_intercept, X), axis=1)
         return X @ self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
