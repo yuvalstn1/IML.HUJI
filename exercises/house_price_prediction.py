@@ -23,7 +23,9 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-    csv_data = pd.read_csv(filename,index_col= 0)
+    csv_data = pd.read_csv(filename)
+    response = csv_data['price']
+    csv_data.drop(['price'],axis = 1,inplace= True)
     csv_data = pd.get_dummies(csv_data,prefix='zipcode num ',columns=['zipcode'])
     csv_data['date']= np.float_(csv_data['date'].str.replace('T000000',''))/10000
 
@@ -33,7 +35,7 @@ def load_data(filename: str):
     csv_data.fillna(value = mean_values)
     csv_data.fillna(0)
 
-    return csv_data,csv_data['price']
+    return csv_data,response
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -53,11 +55,9 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     output_path: str (default ".")
         Path to folder in which plots are saved
     """
-    for column in X.columns:
-        print(X[column].cov(y))
 
     col_corr_array = np.array([(column,(X[column].cov(y)/((X[column]).std()*y.std()))) for column in X.columns])
-    print(col_corr_array)
+
     for column,corr in col_corr_array:
         fig  = px.scatter(x = X[column],y =y,title = column+"-price pearson correlation: "+corr)
 
@@ -72,10 +72,11 @@ if __name__ == '__main__':
     df,response = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
+    #feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
 
     # Question 3 - Split samples into training- and testing sets.
-    raise NotImplementedError()
+    train_samples,train_response,test_samples,test_response = split_train_test(df,response,0.75)
+
 
     # Question 4 - Fit model over increasing percentages of the overall training data
     # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
