@@ -4,6 +4,7 @@ from IMLearn.utils import split_train_test
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
 pio.templates.default = "simple_white"
@@ -18,16 +19,7 @@ city_dicts = {"Capetown":average_temp_capetown,
            "Amsterdam":average_temp_amsterdam,
            "Tel Aviv":average_temp_tel_aviv,
            "Amman":average_temp_amman}
-def fix_temp_value(row):
-    city = row['City']
-    city_dict = city_dicts[city]
-    month = int(row['Month'])
-    temprature = float(row['Temp'])
-    threshold = 30
-    if temprature > city_dict[month] + threshold or temprature < city_dict[month] - threshold:
-        return city_dict[month]
-    else:
-        return temprature
+
 
 
 
@@ -52,13 +44,24 @@ def load_data(filename: str) -> pd.DataFrame:
     #fix bad temprature by putting average temprature according to samples month threshold is 30 degrees
     # more or less than average temprature of month
     temp_data['Temp'] = temp_data.apply(fix_temp_value,axis = 1)
+    temp_data = pd.get_dummies(temp_data, prefix='country_name', columns=['Country'])
+    temp_data = pd.get_dummies(temp_data, prefix='city_name ', columns=['City'])
 
 
     samples = temp_data.drop('Temp', axis = 1)
     resp = temp_data['Temp']
     return samples,resp
 
-
+def fix_temp_value(row):
+    city = row['City']
+    city_dict = city_dicts[city]
+    month = int(row['Month'])
+    temprature = float(row['Temp'])
+    threshold = 30
+    if temprature > city_dict[month] + threshold or temprature < city_dict[month] - threshold:
+        return city_dict[month]
+    else:
+        return temprature
 
 
 if __name__ == '__main__':
@@ -67,23 +70,51 @@ if __name__ == '__main__':
     temp_samples,response = load_data('../datasets/City_Temperature.csv')
     full_data = pd.concat([temp_samples,response],axis=1)
     # Question 2 - Exploring data for specific country
-    israel_data = full_data[full_data['Country'] == 'Israel']
-    # fig = px.scatter(x = israel_data['DayOfYear'],y= israel_data['Temp'] ,
-    #                                    title = "Average Temprature as function of Day of year")
+    israel_data = full_data[full_data['country_name_Israel'] == 1]
+    #make sure coloring is by year and discrete
+    israel_data["Year"] = israel_data["Year"].astype(str)
+    ##get plot
+    # fig = px.scatter(israel_data,x  = israel_data['DayOfYear'],y = israel_data['Temp'],color = "Year" )
+    #
     # fig.update_xaxes(title = "Day Of Year 1-365")
     # fig.update_yaxes(title = "Average Daily Temprature in Celsius")
     #
     # fig.show()
-
-    mon_data = full_data.groupby(["Month"])["Temp"].std()
-    fig_bar = px.bar(mon_data)
-    fig_bar.show()
+    #
+    # mon_data = full_data.groupby(["Month"])["Temp"].std()
+    # fig_bar = px.bar(mon_data)
+    # fig_bar.show()
 
     # Question 3 - Exploring differences between countries
-    raise NotImplementedError()
+    # country_mon_data = full_data.groupby(['Country','Month']).agg({'Temp':['mean','std']})
+    # Israel,Jordan,South_Africa,Netherlands = country_mon_data.iloc[:12,0],country_mon_data.iloc[12:24,0],country_mon_data.iloc[24:36,0],country_mon_data.iloc[36:48,0]
+    # a1,b1,c1,d1 = country_mon_data.iloc[:12,1],country_mon_data.iloc[12:24,1],country_mon_data.iloc[24:36,1],country_mon_data.iloc[36:48,1]
+    # x = np.arange(12)
+    # new_dat = pd.DataFrame(data=[x, Israel,Jordan,South_Africa,Netherlands, a1, a1,a1, a1]).T
+    # new_dat.columns = ['x','Israel', 'Jordan','South_Africa','Netherlands', 'a1', 'b1', 'c1','d1']
+    #
+    #
+    # new_fig = px.line(new_dat,x='x',y=['Israel', 'Jordan','South_Africa','Netherlands'],error_y='a1')
+    #
+    # new_fig.show()
+
+
 
     # Question 4 - Fitting model for different values of `k`
-    raise NotImplementedError()
+    israel_samples = israel_data['DayOfYear']
+    israel_response = israel_data['Temp']
+    train_x,train_y,test_x,test_y = split_train_test(israel_samples,israel_response, 0.75)
+    loss_arr = []
+    for i in range(1,11):
+        polyfit = PolynomialFitting(i)
+        polyfit.fit(train_x,train_y)
+        x = polyfit.loss(test_x,test_y)
+        loss_arr.append(x)
+    rounded_loss_arr = np.round(loss_arr,2)
+    print(loss_arr)
+    print(rounded_loss_arr)
+    bar_plot = px.bar(x = [range(1,11)],y = rounded_loss_arr)
+
 
     # Question 5 - Evaluating fitted model on different countries
     raise NotImplementedError()
