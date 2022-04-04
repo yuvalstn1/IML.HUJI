@@ -72,7 +72,7 @@ if __name__ == '__main__':
     df,response = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
+    #feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
 
     # Question 3 - Split samples into training- and testing sets.
     train_samples,train_response,test_samples,test_response = split_train_test(df,response,0.75)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         frac_array.append(frac)
         loss_p = []
         for x in range(10):
-            train_x,train_y,test_x,test_y = split_train_test(train_samples,train_response,1/float(frac))
+            train_x,train_y,test_x,test_y = split_train_test(train_samples,train_response,float(frac)/100)
             lin_reg.fit(train_x,train_y)
             loss = lin_reg.loss(test_x,test_y)
             loss_p.append(loss)

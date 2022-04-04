@@ -111,10 +111,28 @@ if __name__ == '__main__':
         x = polyfit.loss(test_x,test_y)
         loss_arr.append(x)
     rounded_loss_arr = np.round(loss_arr,2)
-    print(loss_arr)
-    print(rounded_loss_arr)
     bar_plot = px.bar(x = [range(1,11)],y = rounded_loss_arr)
+    bar_plot.update_xaxes(title = "polynomial fit degree")
+    bar_plot.update_yaxes(title = "loss value")
+    bar_plot.show()
 
 
     # Question 5 - Evaluating fitted model on different countries
-    raise NotImplementedError()
+    # +1 because we get list indice and we want degree
+    min_loss = np.argmin(rounded_loss_arr)+1
+    print(min_loss)
+    min_fit = PolynomialFitting(min_loss)
+    min_fit.fit(israel_samples,israel_response)
+    country_labels = ['country_name_Israel','country_name_Jordan',
+                      'country_name_The Netherlands','country_name_South Africa']
+    country_loss =[]
+    for country in country_labels:
+        country_data = full_data[full_data[country] == 1]
+        country_samples = country_data['DayOfYear']
+        country_response = country_data['Temp']
+        loss = min_fit.loss(country_samples,country_response)
+        country_loss.append(loss)
+    country_bar_plot = px.bar(x=country_labels, y=country_loss)
+    country_bar_plot.update_xaxes(title="countries")
+    country_bar_plot.update_yaxes(title="loss value")
+    country_bar_plot.show()

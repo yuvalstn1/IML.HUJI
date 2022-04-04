@@ -55,13 +55,6 @@ class LinearRegression(BaseEstimator):
             added_intercept = np.ones(X.shape[0]).T.reshape(X.shape[0],1)
             X = np.concatenate((added_intercept,X),axis = 1)
         x_sword = pinv(X)
-        # u, sing_val_mat, v_t = np.linalg.svd(X)
-        # sing_values = np.diagonal(sing_val_mat)
-        # divide_func = lambda x: 1 / x if x != 0 else 0
-        # div_func_arr = np.vectorize(divide_func)
-        # inv_sing_val = div_func_arr(sing_values)
-        # sing_cross = np.fill_diagonal(sing_val_mat, sing_values)
-        # x_sword = v_t.T @ sing_cross @ u.T
         self.coefs_ = (x_sword @ y)
 
 
