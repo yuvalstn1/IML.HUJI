@@ -75,7 +75,7 @@ if __name__ == '__main__':
     df,response = load_data('../datasets/house_prices.csv')
 
     # Question 2 - Feature evaluation with respect to response
-    #feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
+    feature_evaluation(df,response,"C:/Users/yuval/Desktop/IML.HUJI/junk_folder/")
 
     # Question 3 - Split samples into training- and testing sets.
     train_samples,train_response,test_samples,test_response = split_train_test(df,response,0.75)
