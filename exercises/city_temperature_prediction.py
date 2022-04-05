@@ -110,8 +110,8 @@ if __name__ == '__main__':
     loss_arr = []
     for i in range(1,11):
         polyfit = PolynomialFitting(i)
-        polyfit.fit(train_x,train_y)
-        x = polyfit.loss(test_x,test_y)
+        polyfit._fit(train_x,train_y)
+        x = polyfit._loss(test_x,test_y)
         loss_arr.append(x)
     rounded_loss_arr = np.round(loss_arr,2)
     bar_plot = px.bar(x = [range(1,11)],y = rounded_loss_arr)
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     min_loss = np.argmin(rounded_loss_arr)+1
     print(min_loss)
     min_fit = PolynomialFitting(min_loss)
-    min_fit.fit(israel_samples,israel_response)
+    min_fit._fit(israel_samples,israel_response)
     country_labels = ['Israel','Jordan',
                       'The Netherlands','South Africa']
     country_loss =[]
@@ -133,7 +133,7 @@ if __name__ == '__main__':
         country_data = full_data[full_data['Country'] == country]
         country_samples = country_data['DayOfYear']
         country_response = country_data['Temp']
-        loss = min_fit.loss(country_samples,country_response)
+        loss = min_fit._loss(country_samples,country_response)
         country_loss.append(loss)
     country_bar_plot = px.bar(x=country_labels, y=country_loss)
     country_bar_plot.update_xaxes(title="countries")

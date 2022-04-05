@@ -55,7 +55,7 @@ class LinearRegression(BaseEstimator):
             added_intercept = np.ones(X.shape[0]).T.reshape(X.shape[0],1)
             X = np.concatenate((added_intercept,X),axis = 1)
         x_sword = pinv(X)
-        self.coefs_ = (x_sword @ y)
+        self.coefs_ = x_sword @ y
 
 
     def _predict(self, X: np.ndarray) -> np.ndarray:

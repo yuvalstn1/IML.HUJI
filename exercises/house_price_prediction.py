@@ -24,7 +24,9 @@ def load_data(filename: str):
     DataFrame or a Tuple[DataFrame, Series]
     """
     csv_data = pd.read_csv(filename)
+    csv_data = csv_data.dropna(axis = 0,subset = ['price'])
     response = csv_data['price']
+
     csv_data.drop(['price','id','date'],axis = 1,inplace= True)
     csv_data = pd.get_dummies(csv_data,prefix='zipcode num ',columns=['zipcode'])
     #csv_data['date']= np.float_(csv_data['date'].str.replace('T000000',''))/10000
@@ -34,6 +36,7 @@ def load_data(filename: str):
                    if column not in {'id','date','zipcode','yr_renovated'}}
     csv_data.fillna(value = mean_values)
     csv_data.fillna(0)
+
 
     return csv_data,response
 
@@ -95,8 +98,8 @@ if __name__ == '__main__':
         loss_p = []
         for x in range(10):
             train_x,train_y,test_x,test_y = split_train_test(train_samples,train_response,float(frac)/100)
-            lin_reg.fit(train_x,train_y)
-            loss = lin_reg.loss(test_samples,test_response)
+            lin_reg._fit(train_x,train_y)
+            loss = lin_reg._loss(test_samples,test_response)
             loss_p.append(loss)
         mean_loss = np.mean(loss_p)
         var_loss = np.std(loss_p)
