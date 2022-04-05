@@ -25,9 +25,9 @@ def load_data(filename: str):
     """
     csv_data = pd.read_csv(filename)
     response = csv_data['price']
-    csv_data.drop(['price','id'],axis = 1,inplace= True)
+    csv_data.drop(['price','id','date'],axis = 1,inplace= True)
     csv_data = pd.get_dummies(csv_data,prefix='zipcode num ',columns=['zipcode'])
-    csv_data['date']= np.float_(csv_data['date'].str.replace('T000000',''))/10000
+    #csv_data['date']= np.float_(csv_data['date'].str.replace('T000000',''))/10000
 
     #get mean values of every column fill blank spaces with mean value of column
     mean_values = {column: csv_data[column].mean() for column in csv_data.columns
@@ -89,14 +89,14 @@ if __name__ == '__main__':
     mean_loss_arr = []
     var_loss_arr = []
     lin_reg = LinearRegression()
-    for i in range(10,100):
+    for i in range(10,101):
         frac = i
         frac_array.append(frac)
         loss_p = []
         for x in range(10):
             train_x,train_y,test_x,test_y = split_train_test(train_samples,train_response,float(frac)/100)
             lin_reg.fit(train_x,train_y)
-            loss = lin_reg.loss(test_x,test_y)
+            loss = lin_reg.loss(test_samples,test_response)
             loss_p.append(loss)
         mean_loss = np.mean(loss_p)
         var_loss = np.std(loss_p)
@@ -104,14 +104,13 @@ if __name__ == '__main__':
         mean_loss_arr.append(mean_loss)
     var_loss_arr = np.array(var_loss_arr)
     mean_loss_arr = np.array(mean_loss_arr)
-    mean_value = np.full(mean_loss_arr.shape,np.mean(mean_loss_arr))
     fig = go.Figure(data= [go.Scatter(x = frac_array,y=mean_loss_arr,name = "mean_loss",mode="markers+lines"),
                            go.Scatter(x = frac_array,y=mean_loss_arr + 2*var_loss_arr, mode="lines", fill='tonexty',line=dict(color="lightgrey"), showlegend=False),
                             go.Scatter(x=frac_array, y=mean_loss_arr - 2*var_loss_arr, mode="lines", fill='tonexty',line=dict(color="lightgrey"), showlegend=False),
-                           go.Scatter(x = frac_array,y=mean_value,name = "estimator mean of mean loss",mode="lines",line=dict(color="green") )],
+                           ],
                     layout = go.Layout(title_text="MSE as function of p% of training data",
                          xaxis={"title": "p% of training data"},
-                         yaxis={"title": "mean_loss"})
+                         yaxis={"title": "mean_loss on test set"})
                     )
 
     fig.show()

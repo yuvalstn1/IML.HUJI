@@ -44,8 +44,11 @@ def load_data(filename: str) -> pd.DataFrame:
     #fix bad temprature by putting average temprature according to samples month threshold is 30 degrees
     # more or less than average temprature of month
     temp_data['Temp'] = temp_data.apply(fix_temp_value,axis = 1)
-    temp_data = pd.get_dummies(temp_data, prefix='country_name', columns=['Country'])
-    temp_data = pd.get_dummies(temp_data, prefix='city_name ', columns=['City'])
+
+    #uncomment if need to use categorical data like country or city names
+
+    # temp_data = pd.get_dummies(temp_data, prefix='country_name', columns=['Country'])
+    # temp_data = pd.get_dummies(temp_data, prefix='city_name ', columns=['City'])
 
 
     samples = temp_data.drop('Temp', axis = 1)
@@ -68,35 +71,35 @@ if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of city temperature dataset
     temp_samples,response = load_data('../datasets/City_Temperature.csv')
-    full_data = pd.concat([temp_samples,response],axis=1)
+    full_data = pd.concat((temp_samples,response),axis =1)
+    full_data['Temp'] = full_data.apply(fix_temp_value,axis = 1)
+
     # Question 2 - Exploring data for specific country
-    israel_data = full_data[full_data['country_name_Israel'] == 1]
+    israel_data = full_data[full_data['Country'] == "Israel"]
     #make sure coloring is by year and discrete
     israel_data["Year"] = israel_data["Year"].astype(str)
     ##get plot
-    # fig = px.scatter(israel_data,x  = israel_data['DayOfYear'],y = israel_data['Temp'],color = "Year" )
-    #
-    # fig.update_xaxes(title = "Day Of Year 1-365")
-    # fig.update_yaxes(title = "Average Daily Temprature in Celsius")
-    #
-    # fig.show()
-    #
-    # mon_data = full_data.groupby(["Month"])["Temp"].std()
-    # fig_bar = px.bar(mon_data)
-    # fig_bar.show()
+    fig = px.scatter(israel_data,x  = israel_data['DayOfYear'],y = israel_data['Temp'],color = "Year" )
+
+    fig.update_xaxes(title = "Day Of Year 1-365")
+    fig.update_yaxes(title = "Average Daily Temprature in Celsius")
+
+    fig.show()
+
+    mon_data = full_data.groupby(["Month"])["Temp"].std()
+    fig_bar = px.bar(mon_data)
+    fig_bar.update_layout(title = "monthly standard deviation from average temprature",xaxis_title = "Month",yaxis_title = "Temp std" )
+    fig_bar.show()
 
     # Question 3 - Exploring differences between countries
-    # country_mon_data = full_data.groupby(['Country','Month']).agg({'Temp':['mean','std']})
-    # Israel,Jordan,South_Africa,Netherlands = country_mon_data.iloc[:12,0],country_mon_data.iloc[12:24,0],country_mon_data.iloc[24:36,0],country_mon_data.iloc[36:48,0]
-    # a1,b1,c1,d1 = country_mon_data.iloc[:12,1],country_mon_data.iloc[12:24,1],country_mon_data.iloc[24:36,1],country_mon_data.iloc[36:48,1]
-    # x = np.arange(12)
-    # new_dat = pd.DataFrame(data=[x, Israel,Jordan,South_Africa,Netherlands, a1, a1,a1, a1]).T
-    # new_dat.columns = ['x','Israel', 'Jordan','South_Africa','Netherlands', 'a1', 'b1', 'c1','d1']
-    #
-    #
-    # new_fig = px.line(new_dat,x='x',y=['Israel', 'Jordan','South_Africa','Netherlands'],error_y='a1')
-    #
-    # new_fig.show()
+    country_mon_data = full_data.groupby(['Country','Month']).Temp.agg([np.mean,np.std])
+
+
+    new_fig = px.line(country_mon_data,x=country_mon_data.index.get_level_values('Month'),y='mean',error_y='std',
+                      color=country_mon_data.index.get_level_values('Country'))
+    new_fig.update_layout(title = "Temp Mean by country + standard deviation",xaxis_title = "Month",yaxis_title = "Temprature mean")
+
+    new_fig.show()
 
 
 
@@ -123,11 +126,11 @@ if __name__ == '__main__':
     print(min_loss)
     min_fit = PolynomialFitting(min_loss)
     min_fit.fit(israel_samples,israel_response)
-    country_labels = ['country_name_Israel','country_name_Jordan',
-                      'country_name_The Netherlands','country_name_South Africa']
+    country_labels = ['Israel','Jordan',
+                      'The Netherlands','South Africa']
     country_loss =[]
     for country in country_labels:
-        country_data = full_data[full_data[country] == 1]
+        country_data = full_data[full_data['Country'] == country]
         country_samples = country_data['DayOfYear']
         country_response = country_data['Temp']
         loss = min_fit.loss(country_samples,country_response)

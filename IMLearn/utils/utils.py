@@ -35,13 +35,8 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .7
     """
     full_data = pd.concat([X,y],axis = 1)
     train = full_data.sample(frac=train_proportion,ignore_index=False)
-    # s = train.index
-    # indices = [str(i) for i in train.index]
-    # print(s)
     s = train.index
     test = full_data.drop(index = s)
-    # for x in s:
-    #     test = test.drop(x)
     resp_column = full_data.columns[-1]
     test_y = test[test.columns[-1]]
     test_x = test.drop(resp_column,axis=1)
