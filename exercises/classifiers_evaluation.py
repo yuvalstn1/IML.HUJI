@@ -67,18 +67,26 @@ def compare_gaussian_classifiers():
     """
     for f in ["gaussian1.npy", "gaussian2.npy"]:
         # Load dataset
-        raise NotImplementedError()
+        samples,response =load_dataset("../datasets/"+f)
 
         # Fit models and predict over training set
-        raise NotImplementedError()
+        lda_model,gnb_model = LDA(),GaussianNaiveBayes()
+        lda_model.fit(samples,response)
+        gnb_model.fit(samples,response)
+
 
         # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         from IMLearn.metrics import accuracy
-        raise NotImplementedError()
+        y_pred_lda,y_pred_gnb = lda_model.predict(samples),gnb_model.predict(samples)
 
+        fig = make_subplots(rows = 1, cols = 2, horizontal_spacing = 0.01, vertical_spacing=.03)
+        fig.add_trace([go.scatter(x = samples[:,0] ,y=samples[:,1],mode="markers",showlegend=False,color=y_pred_lda, symbol=response)])
+        fig.add_trace([go.scatter(x=samples[:, 0], y=samples[:, 1], mode="markers", showlegend=False, color=gnb_model,
+                                  symbol=response)])
+        fig.show()
 
 if __name__ == '__main__':
     np.random.seed(0)
-    run_perceptron()
+    # run_perceptron()
     compare_gaussian_classifiers()

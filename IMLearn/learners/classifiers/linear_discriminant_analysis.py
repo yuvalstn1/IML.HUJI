@@ -52,8 +52,10 @@ class LDA(BaseEstimator):
         # fit the pi
         pi = []
         sum = []
+        self.classes_ = np.unique(y)
         for i in self.classes_:
-            indices = np.where(y == i)
+            #TODO fix indices
+            indices = np.argwhere(y == i)
             nk = indices.shape[0]
             pi.append(nk)
             sum.append(np.sum(X[indices])/nk)
