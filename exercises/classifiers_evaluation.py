@@ -1,8 +1,10 @@
 from IMLearn.learners.classifiers import Perceptron, LDA, GaussianNaiveBayes
 import numpy as np
 from typing import Tuple
+import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
+import plotly.express as px
 from plotly.subplots import make_subplots
 pio.templates.default = "simple_white"
 
@@ -26,7 +28,11 @@ def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
         Class vector specifying for each sample its class
 
     """
-    raise NotImplementedError()
+    full_data = np.load(filename)
+    y = full_data[:,2]
+    x  = full_data[:,:2]
+    return x,y
+
 
 
 def run_perceptron():
@@ -36,16 +42,23 @@ def run_perceptron():
     Create a line plot that shows the perceptron algorithm's training loss values (y-axis)
     as a function of the training iterations (x-axis).
     """
+
     for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
-
+        X,y =load_dataset("../datasets/"+f)
         # Fit Perceptron and record loss in each fit iteration
         losses = []
-        raise NotImplementedError()
+        def los(perc: Perceptron,samples,classification):
+            loss = perc._loss(samples,classification)
+            losses.append(loss)
+        yello = Perceptron(callback=los,include_intercept=True)._fit(X,y)
+
 
         # Plot figure
-        raise NotImplementedError()
+        iter_num = np.arange(len(losses))
+
+        line_fig = px.line(x=iter_num,y = losses)
+        line_fig.show()
 
 
 def compare_gaussian_classifiers():
