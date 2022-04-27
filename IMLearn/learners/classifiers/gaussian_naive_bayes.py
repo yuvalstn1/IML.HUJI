@@ -27,7 +27,7 @@ class GaussianNaiveBayes(BaseEstimator):
             The estimated class probabilities. To be set in `GaussianNaiveBayes.fit`
         """
         super().__init__()
-        self.classes_, self.mu_, self.vars_, self.pi_ = None, None, None, None
+        self.classes_, self.mu_, self.vars_, self.pi_,self._fitted = None, None, None, None,False
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -50,7 +50,8 @@ class GaussianNaiveBayes(BaseEstimator):
         self.pi_ = nk/m
         sample_k_ind = np.stack(sample_k_values)
         k_d_sum_matrice = sample_k_ind @ X
-        for i,row in enumerate(k_d_sum_matrice):
+        for i,row in enumerate(k_d_sum_matrice): # note its k iterations we assume that the amount
+            # of labels is much smaller than the amount of samples
             k_d_sum_matrice[i] = row/nk[i]
         self.mu_ = k_d_sum_matrice
         k_var = []
@@ -62,6 +63,7 @@ class GaussianNaiveBayes(BaseEstimator):
             var_arr.append(k_samples/np.count_nonzero(row))
         k_d_var_matrice =  np.stack(var_arr)
         self.vars_= k_d_var_matrice
+        self.fitted_ = True
 
 
 
@@ -81,11 +83,9 @@ class GaussianNaiveBayes(BaseEstimator):
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        class_results = []
-        for i in self.classes_:
-            class_results.append(self.pi_[i]*multi_var_gauss_pdf(self.vars_,self.mu_,X))
-        predictions = np.argmax(class_results)
-        return predictions
+        predictions = self.likelihood(X)
+        prediction = np.argmax(predictions, axis=1)
+        return prediction
 
 
     def likelihood(self, X: np.ndarray) -> np.ndarray:
@@ -106,16 +106,13 @@ class GaussianNaiveBayes(BaseEstimator):
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
 
-        if not self.fitted_:
-            raise ValueError("Estimator must first be fitted before calling `likelihood` function")
 
-        sample_likelihood = []
-        for sample in X:
-            sample_class_likelihood = []
-            for k in self.classes_:
-                sample_class_likelihood.append(self.pi_[k] * multi_var_gauss_pdf(cov=self.cov_, mu=self.mu_, X=sample))
-            sample_likelihood.append(sample_class_likelihood)
-        return np.ndarray(sample_likelihood)
+        samples_likelihood = []
+        for k,label in enumerate(self.classes_):
+            k_likelihood = likelihood_approx(self.vars_[k],self.mu_[k],self.pi_[k],X)
+            samples_likelihood.append(k_likelihood)
+
+        return np.array(samples_likelihood).T
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -137,10 +134,13 @@ class GaussianNaiveBayes(BaseEstimator):
         test_prediction = self._predict(X)
         return me(y, test_prediction)
 
-def multi_var_gauss_pdf(cov,mu,X):
-    constants_operand = (1 / np.sqrt(np.power(2 * np.pi, X.shape[1]) * det(cov)))
-    x_mu = X - mu
-    exp_operand = np.exp((-0.5) * (x_mu @ inv(cov) @ x_mu.T))
-    pdf_arr = constants_operand * exp_operand
-    pdf_arr = np.diagonal(pdf_arr)
-    return pdf_arr
+def likelihood_approx(vars_k,mu_k,pi_k,X):
+    k_likelihood = []
+    for i,row in enumerate(X):
+        sample_i = []
+        for j,feature in enumerate(row):
+            log_exp = np.square((X[i,j]-mu_k[j])/2*vars_k[j])
+            sample_i.append(np.log(pi_k)-np.log(vars_k[j])-0.5*np.log(2*np.pi)-log_exp)
+        k_likelihood.append(np.sum(sample_i))
+    return np.array(k_likelihood)
+

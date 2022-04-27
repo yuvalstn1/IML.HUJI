@@ -7,6 +7,7 @@ import plotly.io as pio
 import plotly.express as px
 from plotly.subplots import make_subplots
 pio.templates.default = "simple_white"
+from IMLearn.metrics.loss_functions import accuracy
 
 
 def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -80,11 +81,15 @@ def compare_gaussian_classifiers():
         from IMLearn.metrics import accuracy
         y_pred_lda = lda_model.predict(samples)
         y_pred_gnb = gnb_model.predict(samples)
+        lda_accuracy = accuracy(response,y_pred_lda)
+        gnb_accuracy = accuracy(response,y_pred_gnb)
 
-        fig = make_subplots(rows = 1, cols = 2, horizontal_spacing = 0.01, vertical_spacing=.03)
-        fig.add_trace([go.scatter(x = samples[:,0] ,y=samples[:,1],mode="markers",showlegend=False,color=y_pred_lda, symbol=response)])
-        fig.add_trace([go.scatter(x=samples[:, 0], y=samples[:, 1], mode="markers", showlegend=False, color=gnb_model,
-                                  symbol=response)])
+        fig = make_subplots(rows = 1, cols = 2, horizontal_spacing = 0.01, vertical_spacing=.03,subplot_titles=["lda, acc = " + str(lda_accuracy) ,
+                                                                                                                "gaussian, acc = " + str(gnb_accuracy)])
+        fig.add_trace(go.Scatter(x = samples[:,0] ,y=samples[:,1],mode="markers",marker=dict(color=y_pred_lda, symbol=response)),
+                      row = 1,col=1)
+        fig.add_trace(go.Scatter(x=samples[:, 0], y=samples[:, 1], mode="markers",marker=dict(color=y_pred_gnb, symbol=response)),
+                      row = 1,col=2)
         fig.show()
 
 if __name__ == '__main__':
