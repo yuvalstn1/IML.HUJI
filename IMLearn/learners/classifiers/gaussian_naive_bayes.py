@@ -43,22 +43,25 @@ class GaussianNaiveBayes(BaseEstimator):
         """
         m = y.shape[0]
         sample_k_values = []
+        self.classes_ = np.unique(y)
         for k in self.classes_:
             sample_k_values.append((y==k).astype(int))
-        nk = np.ndarray([np.count_nonzero(k_samples) for k_samples in sample_k_values ])
+        nk = np.array([np.count_nonzero(k_samples) for k_samples in sample_k_values ])
         self.pi_ = nk/m
         sample_k_ind = np.stack(sample_k_values)
         k_d_sum_matrice = sample_k_ind @ X
-        self.mu_ = (k_d_sum_matrice)/nk
-        X_trans = X.T
+        for i,row in enumerate(k_d_sum_matrice):
+            k_d_sum_matrice[i] = row/nk[i]
+        self.mu_ = k_d_sum_matrice
         k_var = []
+        # now we calculate the variance
+        var_arr = []
         for k,row in enumerate(sample_k_values):
-            k_samples  = row * X_trans
-            k_samples_mu  = k_samples - self.mu_[k]
-            squared_deviation = np.diagonal( k_samples_mu.T @ k_samples_mu)
-            k_var.append(squared_deviation)
-        k_d_var_matrice =  np.stack(k_var)
-        self.vars_= k_d_var_matrice/nk
+            t = np.square(X - self.mu_[k])
+            k_samples = row @ t
+            var_arr.append(k_samples/np.count_nonzero(row))
+        k_d_var_matrice =  np.stack(var_arr)
+        self.vars_= k_d_var_matrice
 
 
 

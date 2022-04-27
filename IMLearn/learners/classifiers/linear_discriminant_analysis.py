@@ -59,7 +59,6 @@ class LDA(BaseEstimator):
         #find samples that accord to each label
         S = X
         for i in self.classes_:
-            #TODO fix indices
             indices = np.nonzero(y == i)[0]
             nk = indices.shape[0]
             pi.append(nk)
