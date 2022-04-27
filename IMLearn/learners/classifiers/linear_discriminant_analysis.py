@@ -57,12 +57,12 @@ class LDA(BaseEstimator):
         #get all different labels
         self.classes_ = np.unique(y)
         #find samples that accord to each label
-        S = X
+        S = X.copy()
         for i in self.classes_:
             indices = np.nonzero(y == i)[0]
             nk = indices.shape[0]
             pi.append(nk)
-            mu_k = np.sum(X[indices,:])/nk
+            mu_k = np.mean(X[indices],axis = 0)
             sum.append(mu_k)
             S[indices] =S[indices] - mu_k
         self.pi_ = np.array(pi)/m
@@ -89,12 +89,11 @@ class LDA(BaseEstimator):
             Predicted responses of given samples
         """
         if not self.fitted_:
-            raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        class_results = []
-        for i in self.classes_:
-            class_results.append(self.pi_[i]*multi_var_gauss_pdf(self.cov_,self.mu_,X))
-        predictions = np.argmax(class_results)
-        return predictions
+            raise ValueError("Model must first be fitted before prediction")
+
+        predictions = self.likelihood(X)
+        prediction = np.argmax(predictions,axis = 1)
+        return prediction
 
 
     def likelihood(self, X: np.ndarray) -> np.ndarray:
@@ -115,13 +114,12 @@ class LDA(BaseEstimator):
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
 
-        sample_likelihood = []
-        for sample in X:
-            sample_class_likelihood = []
-            for k in self.classes_:
-                sample_class_likelihood.append(self.pi_[k]*multi_var_gauss_pdf(cov = self.cov_,mu = self.mu_,X = sample))
-            sample_likelihood.append(sample_class_likelihood)
-        return np.ndarray(sample_likelihood)
+        likelihoods = []
+        for k,label in enumerate(self.classes_):
+            k_likelihood = response_approx(self._cov_inv,self.mu_[k],X,self.pi_[k])
+            likelihoods.append(k_likelihood)
+
+        return np.array(likelihoods).T
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -143,10 +141,7 @@ class LDA(BaseEstimator):
         test_prediction = self._predict(X)
         return me(y,test_prediction)
 
-def multi_var_gauss_pdf(cov,mu,X):
-    constants_operand = (1 / np.sqrt(np.power(2 * np.pi, X.shape[1]) * det(cov)))
-    x_mu = X - mu
-    exp_operand = np.exp((-0.5) * (x_mu @ inv(cov) @ x_mu.T))
-    pdf_arr = constants_operand * exp_operand
-    pdf_arr = np.diagonal(pdf_arr)
-    return pdf_arr
+def response_approx(inv_cov,mu_k,X,pi_k):
+    a = inv_cov @ mu_k
+    b = np.log(pi_k) - 0.5*mu_k @ inv_cov @ mu_k.T
+    return  X @ a + b

@@ -71,14 +71,15 @@ def compare_gaussian_classifiers():
 
         # Fit models and predict over training set
         lda_model,gnb_model = LDA(),GaussianNaiveBayes()
-        lda_model.fit(samples,response)
-        gnb_model.fit(samples,response)
+        lda_model._fit(samples,response)
+        gnb_model._fit(samples,response)
 
 
         # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         from IMLearn.metrics import accuracy
-        y_pred_lda,y_pred_gnb = lda_model.predict(samples),gnb_model.predict(samples)
+        y_pred_lda = lda_model.predict(samples)
+        y_pred_gnb = gnb_model.predict(samples)
 
         fig = make_subplots(rows = 1, cols = 2, horizontal_spacing = 0.01, vertical_spacing=.03)
         fig.add_trace([go.scatter(x = samples[:,0] ,y=samples[:,1],mode="markers",showlegend=False,color=y_pred_lda, symbol=response)])
