@@ -52,16 +52,23 @@ class LDA(BaseEstimator):
         # fit the pi
         pi = []
         sum = []
+        #number of samples
+        m = y.shape[0]
+        #get all different labels
         self.classes_ = np.unique(y)
+        #find samples that accord to each label
+        S = X
         for i in self.classes_:
             #TODO fix indices
-            indices = np.argwhere(y == i)
+            indices = np.nonzero(y == i)[0]
             nk = indices.shape[0]
             pi.append(nk)
-            sum.append(np.sum(X[indices])/nk)
-        self.pi_ = np.array(pi)/y.shape[0]
+            mu_k = np.sum(X[indices,:])/nk
+            sum.append(mu_k)
+            S[indices] =S[indices] - mu_k
+        self.pi_ = np.array(pi)/m
         self.mu_ = np.array(sum)
-        self.cov_ = np.sum((X-self.mu_[y]) @ (X-self.mu_[y]).T)
+        self.cov_ = np.sum([np.outer(row,row) for row in S],axis =0)/m
         self._cov_inv = inv(self.cov_)
         self.fitted_ = True
 
