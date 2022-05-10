@@ -139,8 +139,8 @@ def likelihood_approx(vars_k,mu_k,pi_k,X):
     for i,row in enumerate(X):
         sample_i = []
         for j,feature in enumerate(row):
-            log_exp = np.square((X[i,j]-mu_k[j])/2*vars_k[j])
-            sample_i.append(np.log(pi_k)-np.log(vars_k[j])-0.5*np.log(2*np.pi)-log_exp)
+            log_exp = np.square((X[i,j]-mu_k[j]))/2*vars_k[j]
+            sample_i.append(np.log(pi_k)-0.5*np.log(vars_k[j])-0.5*np.log(2*np.pi)-log_exp)
         k_likelihood.append(np.sum(sample_i))
     return np.array(k_likelihood)
 

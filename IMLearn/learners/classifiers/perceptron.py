@@ -97,14 +97,16 @@ class Perceptron(BaseEstimator):
         self.coefs_ = np.zeros(X.shape[1])
         for t in range(self.max_iter_):
             for i in range(y.shape[0]):
-                prediction =np.dot(self.coefs_,X[i])
+                prediction = np.dot(self.coefs_,X[i])
                 if y[i]*prediction<=0:
-                    self.coefs_ = self.coefs_ + y[i]*X[i]
+                    addition =  y[i]*X[i]
+                    self.coefs_ = self.coefs_ + addition
                     self.callback_(self, X, y)
                     break
                 if i == y.shape[0]:
                     self.callback_(self, X, y)
                     return
+
 
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
