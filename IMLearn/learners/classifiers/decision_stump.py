@@ -40,23 +40,35 @@ class DecisionStump(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        self.sign_= 1
-        zero_one_y = (y == 1).astype(int)
+        sign = 1
         min = -1
-        for feature in range(X.shape[0]):
-            feature_thresh = self._find_threshold(X[feature],zero_one_y,self.sign_)
-            feature_value = np.where(X[feature] < feature_thresh, -self.sign, self.sign)
-            error = me(zero_one_y, feature_value)
+        for feature in range(X.shape[1]):
+            pos_feature_thresh,pos_feature_min_error = self._find_threshold(X[:,feature],y,sign)
+            neg_feature_thresh,neg_feature_min_error = self._find_threshold(X[:,feature],y,-sign)
+            if pos_feature_min_error > neg_feature_min_error:
+                minsign = -1
+                feature_min_error = neg_feature_min_error
+                feature_thresh = neg_feature_thresh
+            else:
+                minsign = 1
+                feature_min_error = pos_feature_min_error
+                feature_thresh = pos_feature_thresh
+            # feature_value = np.where(X[:,feature] < feature_thresh, -self.sign_, self.sign_)
+            # error = np.sum(np.where(np.sign(y) != np.sign(feature_value), np.abs(y), 0))
             if min ==-1:
                 min_feature = feature
                 min_threash = feature_thresh
-                min = error
-            if error< min:
+                min = feature_min_error
+                self.sign_ = minsign
+            if feature_min_error< min:
                 min_feature = feature
                 min_threash = feature_thresh
-                min = error
+                min = feature_min_error
+                self.sign_ = minsign
         self.j_ = min_feature
         self.threshold_ =  min_threash
+        self.fitted_ = True
+
 
 
 
@@ -84,7 +96,8 @@ class DecisionStump(BaseEstimator):
         Feature values strictly below threshold are predicted as `-sign` whereas values which equal
         to or above the threshold are predicted as `sign`
         """
-        prediction = np.where(X[self.j_] < self.threshold_,-self.sign_,self.sign_)
+
+        prediction = np.where(X[:,self.j_] < self.threshold_,-self.sign_,self.sign_)
         return prediction
 
     def _find_threshold(self, values: np.ndarray, labels: np.ndarray, sign: int) -> Tuple[float, float]:
@@ -120,15 +133,18 @@ class DecisionStump(BaseEstimator):
         min = -1
         best_thresh = 0
         for value in values:
-            thresh_values=np.where(values < value,-sign,sign)
-            error = me(labels,thresh_values)
+            thresh_values = np.where(values < value,-sign,sign)
+            # assume that labels are weighted and calculate misclassification error
+            err_weights = np.where(np.sign(labels*thresh_values)<0,np.abs(labels),0)
+            error = np.sum(err_weights)
+            t = np.count_nonzero(err_weights)
             if min == -1:
                 min = error
                 best_thresh = value
             if error < min:
                 min = error
                 best_thresh = value
-        return best_thresh
+        return best_thresh,min
 
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
