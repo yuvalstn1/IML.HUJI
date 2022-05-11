@@ -2,6 +2,7 @@ import numpy as np
 from typing import Tuple
 from IMLearn.metalearners.adaboost import AdaBoost
 from IMLearn.learners.classifiers import DecisionStump
+from IMLearn.metrics.loss_functions import accuracy
 from utils import *
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -49,11 +50,12 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     test_errors = np.array([adaboost_ensemble.partial_loss(test_X,test_y,t) for t in range(0,n_learners)])
     iterations = np.arange(n_learners)
 
-    adaboost_fig = go.Figure(data=[go.Scatter(x=iterations,y=train_errors),go.Scatter(x=iterations,y=test_errors)])
+    adaboost_fig = go.Figure(data=[go.Scatter(x=iterations,y=train_errors,name = "train error"),
+                                   go.Scatter(x=iterations,y=test_errors,name="test error")])
     adaboost_fig.show()
     # Question 2: Plotting decision surfaces
-    # T = [5, 50, 100, 250]
-    T = [1,5,10,20]
+    T = [5, 50, 100, 250]
+    # T = [1,5,10,20]
     lims = np.array([np.r_[train_X, test_X].min(axis=0), np.r_[train_X, test_X].max(axis=0)]).T + np.array([-.1, .1])
     const_partial_predict  = lambda t:lambda train: adaboost_ensemble.partial_predict(train,t)
     const_partial_loss = lambda t:lambda train,test: adaboost_ensemble.partial_loss(train,test,t)
@@ -69,21 +71,27 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     # Question 3: Decision surface of best performing ensemble
     y_losses = [const_partial_loss(t) for t in T]
     min_t = T[np.argmin([loss(test_X,test_y) for loss in y_losses])]
+    best_acc = accuracy(test_y,adaboost_ensemble.partial_predict(test_X,min_t))
     best_boundary = go.Figure(data = [decision_surface(const_partial_predict(min_t),lims[0],lims[1]),
                                       go.Scatter(x= test_X[:,0],y=test_X[:,1],mode="markers",marker=dict(color=test_y))]
                                      )
+    best_boundary.update_layout(title = "best boundary in iteration: "+str(min_t)+ " accuracy: " + str(best_acc))
     best_boundary.show()
     # Question 4: Decision surface with weighted samples
     last_weights = adaboost_ensemble.D_
     last_weights = last_weights/np.max(last_weights) * 5
     size_plot = go.Figure(data = [decision_surface(const_partial_predict(adaboost_ensemble.iterations_),lims[0],lims[1]),
-                                      go.Scatter(x= train_X[:,0],y=train_X[:,1],size =last_weights,mode="markers",marker=dict(color=train_y))]
+                                      go.Scatter(x= train_X[:,0],y=train_X[:,1],mode="markers",
+                                                 marker=dict(color=train_y,size = last_weights))]
                                      )
+    size_plot.show()
 
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    iterations = 20
-    fit_and_evaluate_adaboost(0,iterations)
-    fit_and_evaluate_adaboost(0.4,iterations)
+    # iterations = 20
+    # fit_and_evaluate_adaboost(0,iterations)
+    # fit_and_evaluate_adaboost(0.4,iterations)
+    fit_and_evaluate_adaboost(0)
+    fit_and_evaluate_adaboost(0.4)

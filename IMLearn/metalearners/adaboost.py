@@ -52,6 +52,7 @@ class AdaBoost(BaseEstimator):
         self.models_ = []
         self.D_ = np.full(y.shape[0],1/y.shape[0])
         self.weights_ = []
+        ones = np.ones(y.shape[0])
         for iteration in range(self.iterations_):
             # create estimator
             model = self.wl_()
@@ -61,7 +62,7 @@ class AdaBoost(BaseEstimator):
             self.models_.append(model)
             # update weights
             model_prediction = model._predict(X)
-            e_t  = np.sum(np.where(np.sign(model_prediction*y*self.D_)<0,self.D_,0))
+            e_t  = np.dot((np.where(np.sign(model_prediction*y*self.D_)<0,self.D_,0)),ones)
             w_t = 0.5*np.log((1/e_t)-1)
             self.weights_.append(w_t)
             s = self.D_ @ np.exp(-w_t*np.sign(y)*model_prediction)

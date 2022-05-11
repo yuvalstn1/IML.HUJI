@@ -132,12 +132,13 @@ class DecisionStump(BaseEstimator):
         """
         min = -1
         best_thresh = 0
-        for value in values:
-            thresh_values = np.where(values < value,-sign,sign)
+        ones = np.ones(values.shape[0])
+        unique_values = np.unique(values)
+        for value in unique_values:
+            # thresh_values = np.where(values < value,-sign,sign)
             # assume that labels are weighted and calculate misclassification error
-            err_weights = np.where(np.sign(labels*thresh_values)<0,np.abs(labels),0)
-            error = np.sum(err_weights)
-            t = np.count_nonzero(err_weights)
+            # err_weights = np.where(np.sign(labels*np.where(values < value,-sign,sign))<0,np.abs(labels),0)
+            error = np.dot(np.where(np.sign(labels*np.where(values < value,-sign,sign))<0,np.abs(labels),0),ones)
             if min == -1:
                 min = error
                 best_thresh = value
