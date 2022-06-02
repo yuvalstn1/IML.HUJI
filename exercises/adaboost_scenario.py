@@ -41,7 +41,7 @@ def generate_data(n: int, noise_ratio: float) -> Tuple[np.ndarray, np.ndarray]:
 
 def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=500):
     (train_X, train_y), (test_X, test_y) = generate_data(train_size, noise), generate_data(test_size, noise)
-    #todo fix nlearners to 250
+
 
     # Question 1: Train- and test errors of AdaBoost in noiseless case
     adaboost_ensemble = AdaBoost(wl = DecisionStump,iterations=n_learners)
@@ -70,16 +70,16 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     boundaries_fig.show()
     # Question 3: Decision surface of best performing ensemble
     y_losses = [const_partial_loss(t) for t in T]
-    min_t = T[np.argmin([loss(test_X,test_y) for loss in y_losses])]
+    min_t = np.argmin(test_errors)
     best_acc = accuracy(test_y,adaboost_ensemble.partial_predict(test_X,min_t))
     best_boundary = go.Figure(data = [decision_surface(const_partial_predict(min_t),lims[0],lims[1]),
                                       go.Scatter(x= test_X[:,0],y=test_X[:,1],mode="markers",marker=dict(color=test_y))]
                                      )
-    best_boundary.update_layout(title = "best boundary in iteration: "+str(min_t)+ " accuracy: " + str(best_acc))
+    best_boundary.update_layout(title = "best boundary in iteration: "+str(min_t+1)+ " accuracy: " + str(best_acc))
     best_boundary.show()
     # Question 4: Decision surface with weighted samples
     last_weights = adaboost_ensemble.D_
-    last_weights = last_weights/np.max(last_weights) * 5
+    last_weights = 10*last_weights/np.max(last_weights)
     size_plot = go.Figure(data = [decision_surface(const_partial_predict(adaboost_ensemble.iterations_),lims[0],lims[1]),
                                       go.Scatter(x= train_X[:,0],y=train_X[:,1],mode="markers",
                                                  marker=dict(color=train_y,size = last_weights))]
@@ -90,8 +90,5 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # iterations = 20
-    # fit_and_evaluate_adaboost(0,iterations)
-    # fit_and_evaluate_adaboost(0.4,iterations)
     fit_and_evaluate_adaboost(0)
     fit_and_evaluate_adaboost(0.4)

@@ -53,8 +53,6 @@ class DecisionStump(BaseEstimator):
                 minsign = 1
                 feature_min_error = pos_feature_min_error
                 feature_thresh = pos_feature_thresh
-            # feature_value = np.where(X[:,feature] < feature_thresh, -self.sign_, self.sign_)
-            # error = np.sum(np.where(np.sign(y) != np.sign(feature_value), np.abs(y), 0))
             if min ==-1:
                 min_feature = feature
                 min_threash = feature_thresh
@@ -135,10 +133,8 @@ class DecisionStump(BaseEstimator):
         ones = np.ones(values.shape[0])
         unique_values = np.unique(values)
         for value in unique_values:
-            # thresh_values = np.where(values < value,-sign,sign)
-            # assume that labels are weighted and calculate misclassification error
-            # err_weights = np.where(np.sign(labels*np.where(values < value,-sign,sign))<0,np.abs(labels),0)
-            error = np.dot(np.where(np.sign(labels*np.where(values < value,-sign,sign))<0,np.abs(labels),0),ones)
+            threshvslabels_vals = np.sign(labels*np.where(values < value,-sign,sign))
+            error = np.dot(np.where(threshvslabels_vals<0,np.abs(labels),0),ones)
             if min == -1:
                 min = error
                 best_thresh = value
