@@ -37,4 +37,38 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     validation_score: float
         Average validation score over folds
     """
-    raise NotImplementedError()
+    data = np.concatenate((X,y),axis=1)
+    # np.random.shuffle(data)
+
+    five_folds = np.array_split(data,cv)
+    validation_scores = []
+    train_scores = []
+    for i in range(cv):
+        validation = five_folds[i]
+        if(cv-1>i > 0 ):
+            remainder = np.concatenate((np.concatenate(five_folds[:i],axis=0),np.concatenate(five_folds[i+1:],axis=0)),axis =0)
+        elif i==cv-1:
+            remainder = np.concatenate(five_folds[:i],axis=0)
+        else:
+            remainder = np.concatenate(five_folds[i+1:],axis=0)
+        estimator.fit(remainder[:,:-1],remainder[:,-1])
+        train_pred = estimator.predict(remainder[:,:-1])
+        train_score  = scoring(train_pred,remainder[:,-1])
+        train_scores.append(train_score)
+        val_pred = estimator.predict(validation[:,:-1])
+        validation_score = scoring(val_pred,validation[:,-1])
+        validation_scores.append(validation_score)
+    avg_validation_score = np.mean(validation_scores)
+    avg_train_score = np.mean(train_scores)
+
+    return avg_train_score,avg_validation_score
+
+# def get_validation_sets(data_copy,k):
+#     val_train_sets = []
+#     for i in range(k,1,-1):
+#         mask = np.random.binomial(1,1/float(i),data.shape[0]).astype(bool)
+#         validation_set,train_set = data_copy[mask],data_copy[~mask]
+#         val_train_sets.append((train_set,validation_set))
+#         data_copy = data_copy[~mask]
+#     return val_train_sets
+

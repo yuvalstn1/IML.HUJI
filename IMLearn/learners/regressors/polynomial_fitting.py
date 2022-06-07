@@ -19,7 +19,7 @@ class PolynomialFitting(BaseEstimator):
             Degree of polynomial to fit
         """
         super().__init__()
-        self.reg = LinearRegression()
+        self.reg = LinearRegression(include_intercept=False)
         self.deg = k
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
@@ -35,7 +35,7 @@ class PolynomialFitting(BaseEstimator):
             Responses of input data to fit to
         """
         tran_X = self.__transform(X)
-        self.reg.fit(tran_X,y)
+        self.reg._fit(tran_X,y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -53,7 +53,7 @@ class PolynomialFitting(BaseEstimator):
         """
 
         tran_X = self.__transform(X)
-        self.reg.predict(tran_X)
+        return self.reg._predict(tran_X)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -91,5 +91,5 @@ class PolynomialFitting(BaseEstimator):
         """
 
         x = np.array(X).reshape(X.shape[0],)
-        tran_X = np.vander(x,N=self.deg,increasing=True)
+        tran_X = np.vander(x,N=self.deg+1,increasing=True)
         return tran_X
