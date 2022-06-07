@@ -46,17 +46,17 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     for i in range(cv):
         validation = five_folds[i]
         if(cv-1>i > 0 ):
-            remainder = np.concatenate((np.concatenate(five_folds[:i],axis=0),np.concatenate(five_folds[i+1:],axis=0)),axis =0)
+            remainder = np.concatenate(five_folds[:i]+five_folds[i+1:],axis =0)
         elif i==cv-1:
             remainder = np.concatenate(five_folds[:i],axis=0)
         else:
             remainder = np.concatenate(five_folds[i+1:],axis=0)
         estimator.fit(remainder[:,:-1],remainder[:,-1])
         train_pred = estimator.predict(remainder[:,:-1])
-        train_score  = scoring(train_pred,remainder[:,-1])
+        train_score  = scoring(remainder[:,-1],train_pred)
         train_scores.append(train_score)
         val_pred = estimator.predict(validation[:,:-1])
-        validation_score = scoring(val_pred,validation[:,-1])
+        validation_score = scoring(validation[:,-1],val_pred)
         validation_scores.append(validation_score)
     avg_validation_score = np.mean(validation_scores)
     avg_train_score = np.mean(train_scores)

@@ -59,7 +59,28 @@ class RidgeRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        raise NotImplementedError()
+
+        data = X
+        lam_i = self.lam_*np.identity(X.shape[1])
+        if self.lam_ == 0:
+           # we have a regular linear regression problem
+           if self.include_intercept_:
+               added_intercept = np.ones(X.shape[0]).T.reshape(X.shape[0], 1)
+               data = np.concatenate((added_intercept, data), axis=1)
+           self.coefs_ = np.linalg.pinv(data) @ y
+        else:
+            d = X.shape[1]
+            ols_x = np.concatenate([X,np.sqrt(lam_i)],axis=0)
+            ols_y = np.concatenate([y,np.zeros(d)])
+            if self.include_intercept_:
+                added_intercept = np.ones((ols_x.shape[0],1))
+                ols_x = np.concatenate((added_intercept, ols_x), axis=1)
+            self.coefs_ = np.linalg.pinv(ols_x) @ ols_y
+
+
+        self.fitted_ = True
+
+
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -75,7 +96,11 @@ class RidgeRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        data = X
+        if self.include_intercept_ :
+            added_intercept = np.ones(X.shape[0]).T.reshape(X.shape[0], 1)
+            data = np.concatenate((added_intercept, X), axis=1)
+        return data @ self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -94,4 +119,15 @@ class RidgeRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        raise NotImplementedError()
+        return np.mean((y-self._predict(X))**2)
+
+def centralize_data(X: np.ndarray,y: np.ndarray):
+    features = X.shape[1]
+    x_c = X
+    std_deviations = []
+    for i in range(features):
+        std = np.std(x_c[i])
+        x_c[i] = (x_c[i]- np.mean(x_c[i]))/std
+        std_deviations.append(std)
+    y_c = (y - np.mean(y))
+    return x_c,y_c,np.array(std_deviations)
