@@ -63,12 +63,5 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
 
     return avg_train_score,avg_validation_score
 
-# def get_validation_sets(data_copy,k):
-#     val_train_sets = []
-#     for i in range(k,1,-1):
-#         mask = np.random.binomial(1,1/float(i),data.shape[0]).astype(bool)
-#         validation_set,train_set = data_copy[mask],data_copy[~mask]
-#         val_train_sets.append((train_set,validation_set))
-#         data_copy = data_copy[~mask]
-#     return val_train_sets
+
 

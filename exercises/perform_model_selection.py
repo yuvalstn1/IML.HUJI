@@ -88,7 +88,7 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
     fraction = n_samples/X.shape[0]
     train_x,train_y,test_x,test_y = split_train_test(pd.DataFrame(X),pd.Series(y),fraction)
     # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
-    hyper_param_ranges = [(0.00001,1),(2,3),(1,10000)]
+    hyper_param_ranges = [(0.000001,0.5),(1,10),(9000,10000)]
     for range in hyper_param_ranges:
         hyper_params = np.linspace(range[0],range[1],n_evaluations)
         l1_validation_scores = []
@@ -186,8 +186,8 @@ def sk_cv(n_samples: int = 50, n_evaluations: int = 500):
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # select_polynomial_degree()
-    # select_polynomial_degree(noise=0)
-    # select_polynomial_degree(n_samples=1500,noise=10)
+    select_polynomial_degree()
+    select_polynomial_degree(noise=0)
+    select_polynomial_degree(n_samples=1500,noise=10)
     select_regularization_parameter()
 
