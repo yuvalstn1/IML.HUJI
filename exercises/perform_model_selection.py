@@ -8,8 +8,8 @@ from IMLearn.model_selection import cross_validate
 from IMLearn.learners.regressors import PolynomialFitting, LinearRegression, RidgeRegression
 from sklearn.linear_model import Lasso\
 # TODO delete these imports
-from sklearn.model_selection import cross_validate as CV
-from sklearn.linear_model import Ridge
+# from sklearn.model_selection import cross_validate as CV
+# from sklearn.linear_model import Ridge
 
 from utils import *
 import plotly.graph_objects as go
@@ -143,46 +143,46 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
     print("lasso test err for reg param ",best_l1_param,": ",
           mean_square_error(test_y,best_lasso.predict(test_x)))
 
-def sk_cv(n_samples: int = 50, n_evaluations: int = 500):
-    X, y = datasets.load_diabetes(return_X_y=True)
-    fraction = n_samples / X.shape[0]
-    train_x, train_y, test_x, test_y = split_train_test(pd.DataFrame(X), pd.Series(y), fraction)
-    # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
-    hyper_param_ranges = [(0.00001, 1), (2, 3), (1, 10000)]
-    for range in hyper_param_ranges:
-        hyper_params = np.linspace(range[0], range[1], n_evaluations)
-        l1_validation_scores = []
-        l1_training_scores = []
-        l2_validation_scores = []
-        l2_training_scores = []
-        best_l1_param = 0
-        best_l1_score = None
-        best_l2_param = 0
-        best_l2_score = None
-
-        for param in hyper_params:
-            ridge_scores = CV(estimator=Ridge(alpha=param),X= train_x.to_numpy(),
-                                                                       y=train_y.to_numpy(),
-                              scoring='neg_mean_squared_error', cv=5, return_train_score=True)
-            ridge_validation_score, ridge_train_score = ridge_scores['test_score'], ridge_scores['train_score']
-            lasso_scores = CV(estimator=Lasso(alpha=param), X= train_x.to_numpy(),
-                              y=train_y.to_numpy(),
-                              scoring='neg_mean_squared_error', cv=5, return_train_score=True)
-            lasso_validation_score, lasso_train_score = lasso_scores['test_score'], lasso_scores['train_score']
-            l1_training_scores.append(lasso_train_score)
-            l1_validation_scores.append(lasso_validation_score)
-            l2_training_scores.append(ridge_train_score)
-            l2_validation_scores.append(ridge_validation_score)
-            # if best_l1_score == None or best_l1_score > lasso_validation_score:
-            #     best_l1_score = lasso_validation_score
-            #     best_l1_param = param
-
-        fig = go.Figure([go.Scatter(x=hyper_params, y=l1_training_scores, name="lasso train err", mode="lines"),
-                         go.Scatter(x=hyper_params, y=l1_validation_scores, name="lasso validation err", mode="lines"),
-                         go.Scatter(x=hyper_params, y=l2_training_scores, name="ridge train err", mode="lines"),
-                         go.Scatter(x=hyper_params, y=l2_validation_scores, name="ridge validation err", mode="lines")],
-                        )
-        fig.show()
+# def sk_cv(n_samples: int = 50, n_evaluations: int = 500):
+#     X, y = datasets.load_diabetes(return_X_y=True)
+#     fraction = n_samples / X.shape[0]
+#     train_x, train_y, test_x, test_y = split_train_test(pd.DataFrame(X), pd.Series(y), fraction)
+#     # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
+#     hyper_param_ranges = [(0.00001, 1), (2, 3), (1, 10000)]
+#     for range in hyper_param_ranges:
+#         hyper_params = np.linspace(range[0], range[1], n_evaluations)
+#         l1_validation_scores = []
+#         l1_training_scores = []
+#         l2_validation_scores = []
+#         l2_training_scores = []
+#         best_l1_param = 0
+#         best_l1_score = None
+#         best_l2_param = 0
+#         best_l2_score = None
+#
+#         for param in hyper_params:
+#             ridge_scores = CV(estimator=Ridge(alpha=param),X= train_x.to_numpy(),
+#                                                                        y=train_y.to_numpy(),
+#                               scoring='neg_mean_squared_error', cv=5, return_train_score=True)
+#             ridge_validation_score, ridge_train_score = ridge_scores['test_score'], ridge_scores['train_score']
+#             lasso_scores = CV(estimator=Lasso(alpha=param), X= train_x.to_numpy(),
+#                               y=train_y.to_numpy(),
+#                               scoring='neg_mean_squared_error', cv=5, return_train_score=True)
+#             lasso_validation_score, lasso_train_score = lasso_scores['test_score'], lasso_scores['train_score']
+#             l1_training_scores.append(lasso_train_score)
+#             l1_validation_scores.append(lasso_validation_score)
+#             l2_training_scores.append(ridge_train_score)
+#             l2_validation_scores.append(ridge_validation_score)
+#             # if best_l1_score == None or best_l1_score > lasso_validation_score:
+#             #     best_l1_score = lasso_validation_score
+#             #     best_l1_param = param
+#
+#         fig = go.Figure([go.Scatter(x=hyper_params, y=l1_training_scores, name="lasso train err", mode="lines"),
+#                          go.Scatter(x=hyper_params, y=l1_validation_scores, name="lasso validation err", mode="lines"),
+#                          go.Scatter(x=hyper_params, y=l2_training_scores, name="ridge train err", mode="lines"),
+#                          go.Scatter(x=hyper_params, y=l2_validation_scores, name="ridge validation err", mode="lines")],
+#                         )
+#         fig.show()
 
 if __name__ == '__main__':
     np.random.seed(0)
