@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import NoReturn
 from ...base import BaseEstimator
 import numpy as np
-
+from IMLearn.metrics.loss_functions import mean_square_error
 
 class RidgeRegression(BaseEstimator):
     """
@@ -119,7 +119,7 @@ class RidgeRegression(BaseEstimator):
         loss : float
             Performance under MSE loss function
         """
-        return np.mean((y-self._predict(X))**2)
+        return mean_square_error(y,self.predict(X))
 
 def centralize_data(X: np.ndarray,y: np.ndarray):
     features = X.shape[1]

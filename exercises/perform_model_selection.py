@@ -7,9 +7,7 @@ from IMLearn.utils import split_train_test
 from IMLearn.model_selection import cross_validate
 from IMLearn.learners.regressors import PolynomialFitting, LinearRegression, RidgeRegression
 from sklearn.linear_model import Lasso\
-# TODO delete these imports
-# from sklearn.model_selection import cross_validate as CV
-# from sklearn.linear_model import Ridge
+
 
 from utils import *
 import plotly.graph_objects as go
@@ -54,6 +52,8 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
 
     fig2 = go.Figure([go.Scatter(x=polynomial_degs,y=avg_train_scores,name= "avg train scores",mode="lines+markers"),
                       go.Scatter(x=polynomial_degs,y=avg_val_scores,name = "avg validation scores",mode="lines+markers")])
+    fig2.update_xaxes(title = "polynomial degree")
+    fig2.update_yaxes(title = "MSE")
     fig2.show()
 
 
@@ -88,23 +88,24 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
     fraction = n_samples/X.shape[0]
     train_x,train_y,test_x,test_y = split_train_test(pd.DataFrame(X),pd.Series(y),fraction)
     # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
-    hyper_param_ranges = [(0.000001,0.5),(1,10),(9000,10000)]
+    hyper_param_ranges = [(0.000001,0.1),(0.000001,5),(1,100)]
+    best_l1_param = 0
+    best_l1_score = None
+    best_l2_param = 0
+    best_l2_score = None
     for range in hyper_param_ranges:
         hyper_params = np.linspace(range[0],range[1],n_evaluations)
         l1_validation_scores = []
         l1_training_scores = []
         l2_validation_scores = []
         l2_training_scores = []
-        best_l1_param = 0
-        best_l1_score = None
-        best_l2_param = 0
-        best_l2_score = None
+
 
         for param in hyper_params:
             ridge_train_score, ridge_validation_score = cross_validate(RidgeRegression(lam=param), train_x.to_numpy(),
                                                                        train_y.to_numpy().reshape(n_samples,1),
                                                                mean_square_error, cv=5)
-            lasso_train_score, lasso_validation_score = cross_validate(Lasso(alpha=param), train_x.to_numpy(),
+            lasso_train_score, lasso_validation_score = cross_validate(Lasso(alpha=param,max_iter=10000), train_x.to_numpy(),
                                                                        train_y.to_numpy().reshape(n_samples,1),
                                                                        mean_square_error, cv=5)
             l1_training_scores.append(lasso_train_score)
@@ -125,6 +126,8 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
                          go.Scatter(x=hyper_params,y=l2_training_scores,name="ridge train err",mode="lines"),
                          go.Scatter(x=hyper_params,y=l2_validation_scores,name="ridge validation err",mode="lines")],
                     )
+        fig.update_xaxes(title = "regularization term parameter value")
+        fig.update_yaxes(title = "MSE")
         fig.show()
 
 
@@ -138,8 +141,8 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
     best_ridge.fit(train_x,train_y)
     best_lasso.fit(train_x,train_y)
     ls.fit(train_x,train_y)
-    print("least squares test err: ", ls.loss(test_x,test_y))
-    print("ridge regression test err for reg param ",best_l2_param,": ", best_ridge.loss(test_x, test_y))
+    print("least squares test err: ", ls._loss(test_x,test_y))
+    print("ridge regression test err for reg param ",best_l2_param,": ", best_ridge._loss(test_x, test_y))
     print("lasso test err for reg param ",best_l1_param,": ",
           mean_square_error(test_y,best_lasso.predict(test_x)))
 
@@ -190,4 +193,7 @@ if __name__ == '__main__':
     select_polynomial_degree(noise=0)
     select_polynomial_degree(n_samples=1500,noise=10)
     select_regularization_parameter()
+    # for i in range(100,10000,100):
+    #     print("number of samples : ",i)
+    #     select_regularization_parameter(n_samples=i)
 
