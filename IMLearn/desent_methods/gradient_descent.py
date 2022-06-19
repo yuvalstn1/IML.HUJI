@@ -120,16 +120,17 @@ class GradientDescent:
 
         """
         i = 0
-        old_weights = None
+        old_weights = np.zeros(shape = f.shape)
         weights  = f.weights
         weight_sum = f.weights
         max_weight = f.weights
         max_val = 0
-        while(i<self.max_iter_ and f.compute_output()>self.tol_  or old_weights == None ):
-            step_size = self.learning_rate_.lr_step(kwarg_1 = i)
+        while(i<self.max_iter_ and f.compute_output()>self.tol_  or not old_weights.any() ):
+            step_size = self.learning_rate_.lr_step(t = i)
             f.weights,old_weights = weights,weights
-
-            weights = weights- step_size*f.compute_jacobian()
+            jacob = f.compute_jacobian()
+            normalized_jacobian = jacob/np.linalg.norm(jacob)
+            weights = weights- step_size*normalized_jacobian
             diff_weights = weights-old_weights
             diff_new_old  = np.linalg.norm(diff_weights)
             f.weights = weights
@@ -138,7 +139,7 @@ class GradientDescent:
             elif self.out_type_ == "best":
                 if max_val <  f.compute_output():
                     max_weight = weights
-            self.callback_(self,weights,f.compute_output(X,y) ,f.compute_jacobian(X,y),i,step_size,diff_new_old )
+            self.callback_(self,weights,f.compute_output(X=X,y=y) ,f.compute_jacobian(X=X,y=y),i,step_size,diff_new_old )
             i +=1
         if self.out_type_ == "average":
             return weight_sum/i

@@ -88,20 +88,72 @@ def get_gd_state_recorder_callback() -> Tuple[Callable[[], None], List[np.ndarra
 
 def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
                                  etas: Tuple[float] = (1, .1, .01, .001)):
-    callback,val_rec,weight_rec = get_gd_state_recorder_callback()
-    GD = GradientDescent(learning_rate=ExponentialLR(1,1),callback=callback)
-    GD.fit(f=L2(init),X=None,y=None)
-    pass
+    modules = [L1,L2]
+    convergence_rates_plots = []
+    min_loss = {}
+    for objective in modules:
+        if objective == L1:
+            name = 'L1'
+        else:
+            name= 'L2'
+        min = None
+        for step_size in etas:
+            callback,val_rec,weight_rec = get_gd_state_recorder_callback()
+            GD = GradientDescent(learning_rate=FixedLR(step_size),callback=callback)
+            GD.fit(f=objective(init),X=None,y=None)
+            des_path_fig = plot_descent_path(objective,descent_path=np.array(weight_rec),title =f'descent path for module: {name},'
+                                                                             f'fixed LR, step size: {step_size}')
+            des_path_fig.show()
+
+            conv_plot = go.Scatter(x=np.arange(1,GD.max_iter_+1),y= val_rec,mode= 'lines',
+                                   name = f'{name},step size: {step_size}')
+            convergence_rates_plots.append(conv_plot)
+            cur_min = np.min(val_rec)
+            if  min == None or cur_min<min:
+                min = cur_min
+        min_loss[name] = min
+    conv_fig = go.Figure(data=convergence_rates_plots)
+    conv_fig.show()
+    print(min_loss)
 
 
 def compare_exponential_decay_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
                                     eta: float = .1,
                                     gammas: Tuple[float] = (.9, .95, .99, 1)):
     # Optimize the L1 objective using different decay-rate values of the exponentially decaying learning rate
-    raise NotImplementedError()
+    modules = [L1,L2]
+    convergence_rates_plots = []
+    min_loss = {}
 
+    for objective in modules:
+        min = None
+        if objective == L1:
+            name = 'L1'
+        else:
+            name= 'L2'
+        for dec_rate in gammas:
+            callback, val_rec, weight_rec = get_gd_state_recorder_callback()
+            GD = GradientDescent(learning_rate=ExponentialLR(eta,dec_rate), callback=callback)
+            GD.fit(f=objective(init), X=None, y=None)
+            if dec_rate == 0.95:
+                des_path_fig = plot_descent_path(objective, descent_path=np.array(weight_rec),
+                                             title=f'descent path for module: {name},'
+                                                   f'exponential LR, base rate: {eta},'
+                                                   f'gamma: {dec_rate}')
+                des_path_fig.show()
+            if objective == L1:
+                conv_plot = go.Scatter(x=np.arange(1, GD.max_iter_ + 1), y=val_rec, mode='lines',
+                                   name=f'{name},base rate: {eta}'
+                                        f'gamma: {dec_rate}')
+                convergence_rates_plots.append(conv_plot)
+            cur_min = np.min(val_rec)
+            if min == None or cur_min < min:
+                min = cur_min
+        min_loss[name] = min
+    conv_fig = go.Figure(data=convergence_rates_plots)
+    conv_fig.show()
+    print(min_loss)
     # Plot algorithm's convergence for the different values of gamma
-    raise NotImplementedError()
 
     # Plot descent path for gamma=0.95
     raise NotImplementedError()
@@ -153,6 +205,6 @@ def fit_logistic_regression():
 
 if __name__ == '__main__':
     np.random.seed(0)
-    compare_fixed_learning_rates()
+    # compare_fixed_learning_rates()
     compare_exponential_decay_rates()
     fit_logistic_regression()
