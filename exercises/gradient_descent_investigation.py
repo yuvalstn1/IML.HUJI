@@ -7,6 +7,8 @@ from IMLearn.desent_methods import GradientDescent, FixedLR, ExponentialLR
 from IMLearn.desent_methods.modules import L1, L2
 from IMLearn.learners.classifiers.logistic_regression import LogisticRegression
 from IMLearn.utils import split_train_test
+from sklearn.metrics import roc_curve
+from IMLearn.model_selection import cross_validate as cv
 
 import plotly.graph_objects as go
 
@@ -156,7 +158,7 @@ def compare_exponential_decay_rates(init: np.ndarray = np.array([np.sqrt(2), np.
     # Plot algorithm's convergence for the different values of gamma
 
     # Plot descent path for gamma=0.95
-    raise NotImplementedError()
+
 
 
 def load_data(path: str = "../datasets/SAheart.data", train_portion: float = .8) -> \
@@ -195,16 +197,36 @@ def fit_logistic_regression():
     # Load and split SA Heard Disease dataset
     X_train, y_train, X_test, y_test = load_data()
 
-    # Plotting convergence rate of logistic regression over SA heart disease data
-    raise NotImplementedError()
 
+    # Plotting convergence rate of logistic regression over SA heart disease data
+    log_reg = LogisticRegression()
+    log_reg.fit(X= X_train,y = y_train)
+    probs = log_reg.predict_proba(X_test)
+    fpr,tpr,thresholds = roc_curve(y_test,probs)
+    fig = go.Figure(
+        data=[go.Scatter(x=[0, 1], y=[0, 1], mode="lines", line=dict(color="black", dash='dash'),
+                         name="Random Class Assignment"),
+              go.Scatter(x=fpr, y=tpr, mode='markers+lines', text=thresholds, name="ROC curve"
+                         )],
+        layout=go.Layout(title="ROC curve of regularized logistic regression fitted model",
+                         xaxis=dict(title=r"$\text{False Positive Rate (FPR)}$"),
+                         yaxis=dict(title=r"$\text{True Positive Rate (TPR)}$")))
+    fig.show()
+
+    tpr_fpr_rate = tpr-fpr
+    max_index = np.argmax(tpr_fpr_rate)
+    best_threshold = thresholds[max_index]
+    print(f'best_threshold is: alpha = {best_threshold}')
     # Fitting l1- and l2-regularized logistic regression models, using cross-validation to specify values
     # of regularization parameter
-    raise NotImplementedError()
+    params = [0.001,3]
+    param_space = np.linspace(params[0],params[1],300)
+    cv(LogisticRegression(penalty="l1",))
+
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     # compare_fixed_learning_rates()
-    compare_exponential_decay_rates()
+    # compare_exponential_decay_rates()
     fit_logistic_regression()
