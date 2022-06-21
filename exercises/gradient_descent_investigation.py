@@ -9,6 +9,7 @@ from IMLearn.learners.classifiers.logistic_regression import LogisticRegression
 from IMLearn.utils import split_train_test
 from sklearn.metrics import roc_curve
 from IMLearn.model_selection import cross_validate as cv
+from IMLearn.metrics.loss_functions import misclassification_error as me
 
 import plotly.graph_objects as go
 
@@ -219,11 +220,57 @@ def fit_logistic_regression():
     print(f'best_threshold is: alpha = {best_threshold}')
     # Fitting l1- and l2-regularized logistic regression models, using cross-validation to specify values
     # of regularization parameter
-    params = [0.001,3]
-    param_space = np.linspace(params[0],params[1],300)
-    cv(LogisticRegression(penalty="l1",))
+    best_val_scores = []
+    best_val_params = []
+    best_train_scores = []
+    best_train_params = []
+    # params = [0.001, 2]
+    # param_space = np.linspace(params[0], params[1], 15)
+    param_space = [0.001,0.002,0.005,0.01,0.02,0.05,0.1]
+    for module in ["l1","l2"]:
+        training_scores = []
+        validation_scores = []
+        best_val_score = None
+        best_val_param = 0
+        best_train_score = None
+        best_train_param = 0
+        for param in param_space:
+            train_score,validation_score = cv(LogisticRegression(penalty=module,lam=param,solver=GradientDescent(max_iter=2000,
+                                                                         learning_rate=FixedLR(1e-4))),X_train.to_numpy(),y_train.to_numpy().reshape(y_train.shape[0],1),
+                                            misclass_error)
+            training_scores.append(train_score)
+            validation_scores.append(validation_score)
+            if best_val_score == None or best_val_score>validation_score:
+                best_val_score = validation_score
+                best_val_param = param
+            if best_train_score == None or best_train_score>train_score:
+                best_train_score = train_score
+                best_train_param = param
+
+        best_param_estimator = LogisticRegression(penalty=module, lam=best_val_param,
+                                                  solver=GradientDescent(max_iter=2000,
+                                                                         learning_rate=FixedLR(1e-4)))
+        best_param_estimator.fit(X_train, y_train)
+        print(f'module: {module}\n'
+              f'best hyperparameter: {best_val_param}\n'
+              f'test error: {best_param_estimator.loss(X_test, y_test)}\n')
+        best_train_scores.append(best_train_score)
+        best_train_params.append(best_train_param)
+        best_val_scores.append(best_val_score)
+        best_val_params.append(best_val_param)
+    print(f'best train scores\n'
+          f'l1: {best_train_scores[0]},lam: {best_train_params[0]}\n')
+    print(
+          f'l2: {best_train_scores[1]},lam: {best_train_params[1]}\n')
+    print(f'best val scores\n'
+          f'l1: {best_val_scores[0]},lam: {best_val_params[0]}\n')
+    print(
+          f'l2: {best_val_scores[1]},lam: {best_train_params[1]}\n')
 
 
+
+def misclass_error(y_true,y_pred)->float:
+    return np.mean(np.count_nonzero(y_true!=y_pred))
 
 if __name__ == '__main__':
     np.random.seed(0)
