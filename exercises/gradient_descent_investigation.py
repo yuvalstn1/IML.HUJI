@@ -270,7 +270,7 @@ def fit_logistic_regression():
 
 
 def misclass_error(y_true,y_pred)->float:
-    return np.mean(np.count_nonzero(y_true!=y_pred))
+    return np.count_nonzero(y_true != y_pred)/y_true.shape[0]
 
 if __name__ == '__main__':
     np.random.seed(0)

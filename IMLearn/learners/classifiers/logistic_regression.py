@@ -159,4 +159,4 @@ class LogisticRegression(BaseEstimator):
             Performance under misclassification error
         """
         prediction = self._predict(X)
-        return np.mean(np.count_nonzero(y!=prediction))
+        return np.count_nonzero(y!=prediction)/prediction.shape[0]
