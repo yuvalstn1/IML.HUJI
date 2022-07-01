@@ -50,7 +50,7 @@ class L2(BaseModule):
             L2 derivative with respect to self.weights at point self.weights
         """
 
-        return 2*self.weights
+        return self.weights
 
 
 class L1(BaseModule):
@@ -96,7 +96,7 @@ class L1(BaseModule):
             L1 derivative with respect to self.weights at point self.weights
         """
         factor = 0.5
-        if  not np.any(self.weights):
+        if not np.any(self.weights):
             return np.full((self.weights.shape[0],self.weights.shape[1]),factor)
         return np.sign(self.weights)
 

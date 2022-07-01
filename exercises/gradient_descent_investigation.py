@@ -217,7 +217,9 @@ def fit_logistic_regression():
     tpr_fpr_rate = tpr-fpr
     max_index = np.argmax(tpr_fpr_rate)
     best_threshold = thresholds[max_index]
+    best_thresh_loss= LogisticRegression(alpha=best_threshold).fit(X=X_train,y=y_train).loss(X=X_test,y=y_test)
     print(f'best_threshold is: alpha = {best_threshold}')
+    print(f"best threshold test error : {best_thresh_loss}")
     # Fitting l1- and l2-regularized logistic regression models, using cross-validation to specify values
     # of regularization parameter
     best_val_scores = []
